@@ -6,14 +6,14 @@ from pathlib import Path
 from typing import List, Optional
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from gradio_client import Client
 
 app = FastAPI(title="Swiss German Lesson Lab")
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 dialect_choices = [
@@ -130,6 +130,10 @@ async def create_lesson(request: LessonRequest) -> LessonResponse:
     normalized_dialect = request.dialect if request.dialect in dialect_choices else "Zürich"
     exercises = generate_exercises(request)
     return LessonResponse(topic=request.topic, dialect=normalized_dialect, exercises=exercises)
+
+@app.get("/", include_in_schema=False)
+async def serve_index() -> FileResponse:
+    return FileResponse(Path("static/index.html"))
 
 
 def encode_audio_file(audio_path: Path) -> AudioResponse:
