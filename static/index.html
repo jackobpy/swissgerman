@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Swiss German Lesson Lab</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="page">
+      <header class="hero">
+        <div>
+          <p class="badge">LLM-powered Swiss German practice</p>
+          <h1>Design a lesson, listen in dialect, and practice translations.</h1>
+          <p class="lede">
+            Start with a topic, optionally add your own Swiss German text, and we will
+            generate quick translation drills with Zurich dialect audio.
+          </p>
+          <div class="pill">
+            <span>🗣️ Zurich dialect audio</span>
+            <span>⚡ Prefetched for the next exercise</span>
+            <span>🧠 Friendly, single-page flow</span>
+          </div>
+        </div>
+      </header>
+
+      <main>
+        <section class="panel">
+          <div class="panel__header">
+            <div>
+              <p class="eyebrow">Step 1</p>
+              <h2>Create your lesson</h2>
+              <p class="muted">Describe what you want to practice and choose a dialect.</p>
+            </div>
+          </div>
+          <form id="lesson-form" class="form">
+            <label class="field">
+              <span class="field__label">Lesson topic</span>
+              <input
+                type="text"
+                id="topic"
+                name="topic"
+                placeholder="Ordering coffee at a café"
+                required
+                minlength="3"
+              />
+            </label>
+
+            <div class="field">
+              <span class="field__label">Dialect for audio</span>
+              <select id="dialect" name="dialect">
+                <option value="Aarau">Aarau</option>
+                <option value="Bern">Bern</option>
+                <option value="Basel">Basel</option>
+                <option value="Graubünden">Graubünden</option>
+                <option value="Luzern">Luzern</option>
+                <option value="St. Gallen">St. Gallen</option>
+                <option value="Valais">Valais</option>
+                <option value="Zürich" selected>Zürich</option>
+              </select>
+              <p class="hint">The Zurich accent pairs best with the TTS API.</p>
+            </div>
+
+            <label class="field">
+              <span class="field__label">Optional Swiss German reference text</span>
+              <input type="file" id="book" accept=".txt" />
+              <p class="hint">Upload a TXT file to influence the generated sentences.</p>
+            </label>
+
+            <div class="actions">
+              <button type="submit" class="button">Generate lesson</button>
+              <div id="form-status" class="status" role="status"></div>
+            </div>
+          </form>
+        </section>
+
+        <section id="lesson-section" class="panel" hidden>
+          <div class="panel__header">
+            <div>
+              <p class="eyebrow">Step 2</p>
+              <h2>Lesson overview</h2>
+              <p class="muted">Six short exercises, tuned to your topic.</p>
+            </div>
+            <button id="start-lesson" class="button button--ghost">Start lesson</button>
+          </div>
+          <div id="overview" class="grid"></div>
+        </section>
+
+        <section id="exercise-section" class="panel" hidden>
+          <div class="panel__header">
+            <div>
+              <p class="eyebrow">Step 3</p>
+              <h2>Practice</h2>
+              <p class="muted">Translate the Zurich dialect sentence and listen to the accent.</p>
+            </div>
+            <div class="pill pill--small" id="progress-pill"></div>
+          </div>
+
+          <div id="exercise-card" class="exercise-card"></div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>
