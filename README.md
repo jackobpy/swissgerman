@@ -14,6 +14,20 @@ Single-page FastAPI app that lets you design a Swiss German lesson, generate six
    ```
 3. Open the UI at http://localhost:8000
 
+### Troubleshooting TTS SSL errors
+
+Some environments report certificate or hostname errors when contacting the
+Zurich TTS endpoint. To start the server without strict certificate checks,
+disable verification before launching uvicorn:
+
+```bash
+export TTS_SSL_VERIFY=false
+uvicorn main:app --reload --port 8000
+```
+
+If you host your own compatible TTS endpoint, override the target with
+`TTS_BASE_URL`.
+
 ## Features
 - Topic-driven lesson creation with optional Swiss German text to guide the generated sentences.
 - Six quick exercises with Zurich-dialect prompts and reference translations.

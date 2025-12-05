@@ -1,5 +1,7 @@
 import base64
 import mimetypes
+import os
+from functools import lru_cache
 from pathlib import Path
 from typing import List, Optional
 
@@ -25,7 +27,37 @@ dialect_choices = [
     "Zürich",
 ]
 
-tts_client = Client("https://sttg4.fhm.ch/tts/")
+
+def _is_truthy_env(var_name: str, default: str = "true") -> bool:
+    raw = os.getenv(var_name, default)
+    return str(raw).strip().lower() not in {"0", "false", "no", "off", ""}
+
+
+@lru_cache(maxsize=1)
+def get_tts_client() -> Client:
+    """Construct a Gradio client, optionally relaxing SSL verification.
+
+    Some environments surface certificate/hostname issues with the hosted Zurich
+    dialect TTS service. When TTS_SSL_VERIFY=false, SSL verification is turned
+    off. If verification is enabled and instantiation fails, we retry with
+    verification disabled so the app can still start.
+    """
+
+    base_url = os.getenv("TTS_BASE_URL", "https://sttg4.fhm.ch/tts/")
+    verify_ssl = _is_truthy_env("TTS_SSL_VERIFY", "true")
+
+    try:
+        return Client(base_url, ssl_verify=verify_ssl)
+    except Exception:
+        if verify_ssl:
+            # Fallback to avoid startup crashes when cert validation fails.
+            try:
+                return Client(base_url, ssl_verify=False)
+            except Exception as exc:  # noqa: BLE001
+                raise RuntimeError(
+                    "Could not initialize TTS client even after disabling SSL verification."
+                ) from exc
+        raise
 
 
 class LessonRequest(BaseModel):
@@ -110,6 +142,17 @@ def encode_audio_file(audio_path: Path) -> AudioResponse:
 
 @app.post("/api/audio", response_model=AudioResponse)
 async def fetch_audio(request: AudioRequest) -> JSONResponse:
+    try:
+        tts_client = get_tts_client()
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(
+            status_code=502,
+            detail=(
+                "TTS client could not be initialized. If you're seeing certificate"
+                " errors, set TTS_SSL_VERIFY=false before starting the server."
+            ),
+        ) from exc
+
     try:
         result = tts_client.predict(
             request.text,
